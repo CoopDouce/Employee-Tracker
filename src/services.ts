@@ -67,7 +67,7 @@ const addDepartment = () => {
     ]).then((response) => {
         // Insert the department name into the database
         const sqlQuery = `INSERT INTO department (name) VALUES ($1)`;
-        pool.query(sqlQuery, [response.department], (err: Error, res: QueryResult) => {
+        pool.query(sqlQuery, [response.department], (err: Error) => {
             if (err) {
                 console.error(err);
                 return;
@@ -97,7 +97,7 @@ const addRole = () => {
         }
     ]).then((response) => {
         const sqlQuery = `INSERT INTO role (title, salary, department_id) VALUES ($1, $2, $3)`;
-        pool.query(sqlQuery, [response.title, response.salary, response.department_id], (err: Error, res: QueryResult) => {
+        pool.query(sqlQuery, [response.title, response.salary, response.department_id], (err: Error) => {
             if (err) {
                 console.error(err);
                 return;
@@ -132,7 +132,7 @@ const addEmployee = () => {
         }
     ]).then((response) => {
         const sqlQuery = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4)`;
-        pool.query(sqlQuery, [response.first_name, response.last_name, response.role_id, response.manager_id], (err: Error, res: QueryResult) => {
+        pool.query(sqlQuery, [response.first_name, response.last_name, response.role_id, response.manager_id], (err: Error) => {
             if (err) {
                 console.error(err);
                 return;
@@ -157,7 +157,7 @@ const updateRole = () => {
         }
     ]).then((response) => {
         const sqlQuery = `UPDATE employee SET role_id = $1 WHERE id = $2`;
-        pool.query(sqlQuery, [response.role_id, response.employee_id], (err: Error, res: QueryResult) => {
+        pool.query(sqlQuery, [response.role_id, response.employee_id], (err: Error) => {
             if (err) {
                 console.error(err);
                 return;
@@ -182,7 +182,7 @@ const updateManager = () => {
         }
     ]).then((response) => {
         const sqlQuery = `UPDATE employee SET manager_id = $1 WHERE id = $2`;
-        pool.query(sqlQuery, [response.manager_id, response.employee_id], (err: Error, res: QueryResult) => {
+        pool.query(sqlQuery, [response.manager_id, response.employee_id], (err: Error) => {
             if (err) {
                 console.error(err);
                 return;
@@ -214,23 +214,40 @@ const employeeByManager = () => {
 
 // View employees by department
 const employeeByDepartment = () => {
-    inquirer.prompt([
-        {
-            type: 'input',
-            name: 'department_id',
-            message: 'Enter the ID of the department whose employees you want to view:'
+    // Fetch the list of departments from the database
+    const sqlQueryDepartments = `SELECT id, name FROM department`;
+    pool.query(sqlQueryDepartments, (err: Error, res: QueryResult) => {
+        if (err) {
+            console.error(err);
+            return;
         }
-    ]).then((response) => {
-        const sqlQuery = `SELECT * FROM employee WHERE department_id = $1`;
-        pool.query(sqlQuery, [response.department_id], (err: Error, res: QueryResult) => {
-            if (err) {
-                console.error(err);
-                return;
+
+        // Map the departments to choices for inquirer
+        const departmentChoices = res.rows.map(department => ({
+            name: department.name,
+            value: department.id
+        }));
+        // Prompt the user to select a department from the list
+        inquirer.prompt([
+            {
+                type: 'list',
+                name: 'department',
+                message: 'Select the department whose employees you want to view:',
+                choices: departmentChoices
             }
-            console.table(res.rows);
-            mainMenu();
+        ]).then((response) => {
+            const sqlQueryEmployees = `SELECT * FROM employee WHERE department_id = $1`;
+            pool.query(sqlQueryEmployees, [response.department], (err: Error, res: QueryResult) => {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+                console.table(res.rows);
+                mainMenu();
+            });
         });
-    })};
+    });
+};
 
 // Delete a department
 const deleteDepartment = () => {
@@ -242,7 +259,7 @@ const deleteDepartment = () => {
         }
     ]).then((response) => {
         const sqlQuery = `DELETE FROM department WHERE id = $1`;
-        pool.query(sqlQuery, [response.department_id], (err: Error, res: QueryResult) => {
+        pool.query(sqlQuery, [response.department_id], (err: Error) => {
             if (err) {
                 console.error(err);
                 return;
@@ -262,7 +279,7 @@ const deleteEmployee = () => {
         }
     ]).then((response) => {
         const sqlQuery = `DELETE FROM employee WHERE id = $1`;
-        pool.query(sqlQuery, [response.employee_id], (err: Error, res: QueryResult) => {
+        pool.query(sqlQuery, [response.employee_id], (err: Error) => {
             if (err) {
                 console.error(err);
                 return;

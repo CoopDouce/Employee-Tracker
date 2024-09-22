@@ -4,8 +4,7 @@ CREATE DATABASE company_db;
 
 CREATE TABLE department (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(30) NOT NULL
-);
+    name VARCHAR(30) NOT NULL);
 
 CREATE TABLE role (
     id SERIAL PRIMARY KEY,
@@ -13,8 +12,7 @@ CREATE TABLE role (
     salary DECIMAL NOT NULL,
     department_id INT NOT NULL,
     CONSTRAINT fk_department FOREIGN KEY (department_id) REFERENCES department(id)
-    ON DELETE CASCADE
-);
+    ON DELETE CASCADE);
 
 CREATE TABLE employee (
     id SERIAL PRIMARY KEY,
@@ -25,5 +23,4 @@ CREATE TABLE employee (
     CONSTRAINT fk_role FOREIGN KEY (role_id) REFERENCES role(id)
     ON DELETE CASCADE,
     CONSTRAINT fk_manager FOREIGN KEY (manager_id) REFERENCES employee(id)
-    ON DELETE CASCADE
-);
+    ON DELETE CASCADE);
